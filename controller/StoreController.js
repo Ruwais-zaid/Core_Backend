@@ -144,109 +144,92 @@ class StoreController {
             return res.status(500).json({ message: "An error occurred while creating the store entry." });
         }
     }
-    static async update(req,res){
-        try{
-
-            const {id} = req.params;
-            const {user}= req
+    static async update(req, res) {
+        try {
+            const { id } = req.params;
+            const { user } = req;
             const body = req.body;
-
+    
+            // Find the existing store entry by ID
             const store = await prisma.store.findUnique({
-                where:{
-                    id:Number(id)
-                }
-            })
-
-            if(!store || user.id!==id){
-                res.status(400).json({msg:"Unauthorise user"})
+                where: {
+                    id: Number(id),
+                },
+            });
+    
+            // Check if store exists and if the user is authorized
+            if (!store || user.id !== store.user_id) {
+                return res.status(400).json({ msg: "Unauthorized user" });
             }
-
-            const validator  = vine.compile(StoreSchema);
-            const  payload  = validator.validate(body);
-
-            const image  = req?.files?.image;
-            const title  = req?.body.title;
-            const content = req?.body.content;
-            const price = req?.body.price;
-            const category = req?.body.category;
-            const sold = req?.body.sold;
-
-            if(image){
-                const isImageValidate = validateImage(image.size,image.mimetype);
-                if(isImageValidate !==null){
-                    res.status(400).json({
-                        err:isImageValidate
-                    })
-
+    
+            // Validate the request body with StoreSchema
+            const validator = vine.compile(StoreSchema);
+            const payload = await validator.validate(body);
+    
+            const image = req?.files?.image;
+    
+            if (image) {
+                // Validate the uploaded image
+                const isImageValid = validateImage(image.size, image.mimetype);
+                if (isImageValid !== null) {
+                    return res.status(400).json({
+                        err: isImageValid,
+                    });
                 }
-            }
-
-            const imageExt = image.name.split(".").pop();
-            const imageName = `${Math.floor(Math.random()*1000)}.${imageExt}`
-            const path =  `${process.cwd()}/public/images/${imageName}`
-
-            await new Promise((resolve,reject)=>{
-                image.mv(path,(err)=>{
-                    if(err){
-                        reject(new Error("Upload Failed"))
-                    }
-                    else{
-                        resolve();
-                    }
-                })
-            })
-            
-            if(image){
+    
+                // Prepare image name and upload path
+                const imageExt = image.name.split(".").pop();
+                const imageName = `${Math.floor(Math.random() * 1000)}.${imageExt}`;
+                const path = `${process.cwd()}/public/images/${imageName}`;
+    
+                // Upload the image to the server
+                await new Promise((resolve, reject) => {
+                    image.mv(path, (err) => {
+                        if (err) {
+                            reject(new Error("Upload Failed"));
+                        } else {
+                            resolve();
+                        }
+                    });
+                });
+    
+                // Remove the old image from the server if a new image is uploaded
                 removeImage(store.image);
+    
+                // Update the payload with the new image
+                payload.image = imageName;
             }
-            payload.image = imageName;
-            if(title){
-                payload.title = title;
-            }
-            else{
-                payload.title = store.title;
-            }
-            if(content){
-                payload.content = content;
-            }
-            else{
-                payload.content = store.content;
-            }
-            if(price){
-                payload.price=  price;
-            }
-            else{
-                payload.price =  content.price;
-            }
-            if(sold){
-                payload.sold = sold;
-            }
-            else{
-                payload.sold = store.sold;
-            }
-            if(category){
-                payload.category = category;
-            }
-            else{
-                payload.category = store.category;
-            }
-            await prisma.store.update({
-                data:payload,
-                where:{
-                    id:Number(id)
-                }
-            })
-            res.status(200).json(
-                {
-                    msg:"Store Updated Sucessfully",
-                    payload
-                }
-            )
+    
+           // Update other fields conditionally if they are present
+payload.title = body.title || store.title;
+payload.content = body.content || store.content;
 
-        }catch(error){
+// Ensure price is converted to a number if it's present, otherwise fallback to the existing value
+payload.price = body.price !== undefined ? Number(body.price) : store.price;
+
+// Ensure sold is converted to a boolean if it's present, otherwise fallback to the existing value
+payload.sold = body.sold !== undefined ? Boolean(body.sold) : store.sold;
+
+payload.category = body.category || store.category;
+
+            // Update the store entry in the database
+            const updatedStore = await prisma.store.update({
+                data: payload,
+                where: {
+                    id: Number(id),
+                },
+            });
+    
+            res.status(200).json({
+                msg: "Store Updated Successfully",
+                data: updatedStore,
+            });
+        } catch (error) {
             console.error("Error while updating store entry:", error);
+            res.status(500).json({ msg: "An error occurred while updating the store entry." });
         }
     }
+    
 }
 
 export default StoreController;
