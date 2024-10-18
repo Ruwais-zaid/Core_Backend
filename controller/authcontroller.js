@@ -96,6 +96,7 @@ class AuthController {
                     email:user.email
 
                 },
+                acess_token:`Bearer ${token}`
                 
             });
 

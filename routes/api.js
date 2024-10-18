@@ -11,7 +11,8 @@ routes.post('/auth/register', AuthController.register);
 routes.post('/auth/login', AuthController.Login);
 
 
-routes.get('/profile',authMiddleware,ProfileController.index)
+routes.get('/profile/v1/account',authMiddleware,ProfileController.index)
+routes.put('/profile/v1/update/:id',authMiddleware,ProfileController.update)
 // Store Routes
 routes.post('/store/v1', authMiddleware, StoreController.store);
 routes.get('/store/v1/index',StoreController.index)
