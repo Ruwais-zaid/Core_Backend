@@ -144,25 +144,59 @@ class StoreController {
             return res.status(500).json({ message: "An error occurred while creating the store entry." });
         }
     }
+    static async delete(req, res) {
+        try {
+            const { id } = req.params;
+            const { user } = req;
+    
+            // Find the store entry by ID
+            const storeEntry = await prisma.store.findUnique({
+                where: {
+                    id: Number(id),
+                },
+            });
+    
+            // Check if the store entry exists and if the user is authorized to delete it
+            if (!storeEntry || user.id !== storeEntry.user_id) {
+                return res.status(403).json({
+                    msg: "Unauthorized user to delete the product...",
+                });
+            }
+    
+            // Delete the store entry
+            const deleteEntry = await prisma.store.delete({
+                where: {
+                    id: Number(id),
+                },
+            });
+    
+            // Return a success response
+            res.status(200).json({
+                msg: "Product deleted successfully",
+                deleteEntry,
+            });
+        } catch (err) {
+            console.error("Error while deleting store entry:", err);
+            return res.status(500).json({ message: "An error occurred while deleting the store entry" });
+        }
+    }
+    
     static async update(req, res) {
         try {
             const { id } = req.params;
             const { user } = req;
             const body = req.body;
     
-            // Find the existing store entry by ID
             const store = await prisma.store.findUnique({
                 where: {
                     id: Number(id),
                 },
             });
-    
-            // Check if store exists and if the user is authorized
+
             if (!store || user.id !== store.user_id) {
                 return res.status(400).json({ msg: "Unauthorized user" });
             }
     
-            // Validate the request body with StoreSchema
             const validator = vine.compile(StoreSchema);
             const payload = await validator.validate(body);
     
