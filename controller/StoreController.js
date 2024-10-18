@@ -8,45 +8,52 @@ import vine from "@vinejs/vine";
 class StoreController {
     // Method to fetch store list with pagination
     static async index(req, res) {
-        try {
-            // Parse query parameters for pagination with default values and bounds checking
-            const page = Math.max(Number(req.query.page) || 1, 1); // Ensure page is at least 1
-            const limit = Math.min(Math.max(Number(req.query.limit) || 2, 1), 10); // Limit is between 1 and 10
-            const skip = (page - 1) * limit;
+      try{
 
-            // Fetch the list of stores with pagination and user details
-            const storeList = await prisma.store.findMany({
-                take: limit,
-                skip: skip,
-                include: {
-                    user: {
-                        select: {
-                            id: true,
-                            name: true,
-                            image: true,
-                        },
-                    },
-                },
-            });
-
-            // Transform the store list data
-            const transformedStores = storeList?.map((item) => StoreApiTransform.transform(item));
-            const totalStores = await prisma.store.count();
-            const totalPages = Math.ceil(totalStores / limit);
-
-            return res.status(200).json({
-                status: 200,
-                stores: transformedStores,
-                metaData: {
-                    totalPages,
-                    currentPage: page,
-                    currentLimit: limit,
-                },
-            });
-        } catch (error) {
-            console.error("Error fetching store list:", error);
-            return res.status(500).json({ success: false, message: "Internal Server Error" });
+        const page  = Number(req.query.page) || 1;
+        const limit  = Number(req.query.limit) || 10
+        if(page<=0){
+            page=1;
         }
+        if(limit<=0 || limit>=100){
+            limit= 10;
+        }
+        const skip = (page-1)*limit;
+
+        const storeList = await prisma.store.findMany({
+            skip:skip,
+            take:limit,
+            include:{
+                user:{
+                    select:{
+                        id:true,
+                        name:true,
+                        email:true,
+                    }
+                }
+            }
+        })
+
+        const storeEntry = storeList.map((item)=> StoreApiTransform.transform(item));
+        const totalProduct  = await prisma.store.count();
+        const totalPage = Math.ceil(totalProduct/limit);
+        res.status(200).json({
+            status:200,
+            data:storeEntry,
+            metadata:{
+                totalProducts:totalProduct,
+                totalPage:totalPage
+
+            }
+        })
+
+      }catch(error){
+        console.log(error)
+        res.status(500).json({
+            err:"Error while fetching the products"
+        })
+
+      }
     }
 
     // Method to create a new store entry
