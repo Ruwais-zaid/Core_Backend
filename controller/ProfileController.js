@@ -6,12 +6,13 @@ class ProfileController{
     static async index(req,res){
         try{
             const user = req.user;
+            console.log(user)
             return res.status(200).json({
                 status:200,
                 user:{
                     id:user.id,
                     name:user.name,
-                    email:user.email
+                    email:user.email,
                 }
             })
         }catch(error){
@@ -21,7 +22,7 @@ class ProfileController{
     }
     static async update(req, res) {
         try {
-            const { id } = req.params; // Use req.params to get the user ID from the URL
+            const { email } = req.params; // Get the user name from the URL parameters
             const body = req.body;
             const loggedInUser = req.user;
     
@@ -32,22 +33,30 @@ class ProfileController{
             // Fetch the profile of the user to be updated
             const profile = await prisma.user.findUnique({
                 where: {
-                    id: Number(id),
+                    email:email
                 },
             });
-
     
-            // Update the payload conditionally based on provided fields
-            payload.name = body.name || user.name;
-            payload.email = body.email || user.email;
-            payload.image = body.image || user.image;
+            // Check if the profile exists and if the logged-in user is authorized to update it
+            if (!profile || loggedInUser.email !== email) {
+                return res.status(403).json({
+                    message: 'Unauthorized: You cannot update this profile.',
+                });
+            }
+    
+            // Update the payload conditionally based on the provided fields
+            const updatedData = {
+                name: payload.name || profile.name,
+                email: payload.email || profile.email,
+                image: payload.image || profile.image,
+            };
     
             // Perform the update operation
             const updatedProfile = await prisma.user.update({
                 where: {
-                    id: Number(id),
+                    email:email
                 },
-                data: payload,
+                data: updatedData,
             });
     
             // Send a successful response with the updated profile
@@ -60,6 +69,40 @@ class ProfileController{
             res.status(500).json({ error: "Internal Server Error" });
         }
     }
+    
+    static async delete(req, res) {
+        try {
+            const { email } = req.params;
+    
+            // Check if the user ID from the params is a valid number
+            if (isNaN(email)) {
+                return res.status(400).json({ error: "Invalid email Id" });
+            }
+    
+            //Delete the related record of a Store table first
+
+            await prisma.store.deleteMany({
+                where:{
+                    user_id:Number(id)
+                }
+            })            // Delete the user
+            const deleteEntry = await prisma.user.delete({
+                where: {
+                    id: Number(id),
+                },
+            });
+    
+            return res.status(200).json({
+                status: 200,
+                message: "User deleted successfully",
+                deletedUser: deleteEntry,
+            });
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            return res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+    
 }
 
 export default ProfileController;

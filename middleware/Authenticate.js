@@ -1,28 +1,28 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
-const authMiddleware = (req,res,next)=>{
-    const authHeader =  req.headers.authorization;
-    if(!authHeader){
-        return res.status(400).json({error:"Unauthorized no token provided"})
+const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-    }
-    const token = authHeader.split(" ")[1];
-    if(!token){
-        return res.status(400).json({error:"Unauthorized tokens missing"})
-
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Unauthorized: No token provided or incorrect format" });
     }
 
-    console.log("Token recieved" , token)
+    const token = authHeader.split(' ')[1];
 
-    jwt.verify(token,process.env.JWT_SECRET,(err,user)=>{
-        if(err){
-            console.log("JWT Verificaton error:" , err);
-            return res.status(400).json({msg:"Unauthorized invalid token"})
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized: Token is missing" });
+    }
+
+    console.log("Token received:", token);
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            console.log("JWT Verification error:", err);
+            return res.status(401).json({ msg: "Unauthorized: Invalid or expired token" });
         }
-
-        req.user = user;
+        req.user=user;
         next();
-    })
-}
+    });
+};
 
 export default authMiddleware;
