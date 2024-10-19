@@ -60,28 +60,28 @@ class StoreController {
     static async store(req, res) {
         try {
             const { body } = req;
-            const { user } = req;
-
+            const { user } = req; // Ensure user is available from the auth middleware
+    
             // Validate the request body with StoreSchema
             const validator = vine.compile(StoreSchema);
             const payload = await validator.validate(body);
-
+    
             // Validate the uploaded image
             const profileImage = req.files?.image;
             if (!profileImage) {
                 return res.status(400).json({ error: "Image file is required" });
             }
-
+    
             const isImageValid = validateImage(profileImage.size, profileImage.mimetype);
             if (isImageValid) {
                 return res.status(400).json({ error: "Invalid image format or size" });
             }
-
+    
             // Prepare image name and upload path
             const imageExt = profileImage.name.split(".").pop();
             const imageName = `${Math.floor(Math.random() * 10000)}.${imageExt}`;
             const uploadPath = `${process.cwd()}/public/images/${imageName}`;
-
+    
             // Upload the image to the server
             await new Promise((resolve, reject) => {
                 profileImage.mv(uploadPath, (err) => {
@@ -93,16 +93,26 @@ class StoreController {
                     }
                 });
             });
-
+    
             // Add image and user details to the payload
             payload.image = imageName;
-            payload.user_id = user.id;
-
-            // Create a new store entry in the database
+    
+            // Ensure the user ID is included when creating the store
+            if (!user || !user.email) {
+                return res.status(400).json({ error: "User email is required" });
+            }
+    
+            // Create a new store entry in the database, connecting it to the user
             const storeEntry = await prisma.store.create({
-                data: payload,
+                data: {
+                    ...payload,
+                    sold:Boolean(payload.sold) !==undefined ? Boolean(payload.sold):false,
+                    user: {
+                        connect: { email: user.email } // Connect the store entry to the user
+                    }
+                },
             });
-
+    
             return res.status(201).json({
                 status: 201,
                 message: "Store entry created successfully",
@@ -118,6 +128,7 @@ class StoreController {
             return res.status(500).json({ message: "An error occurred while creating the store entry." });
         }
     }
+    
 
     static async storefromApi(req,res){
 

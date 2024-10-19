@@ -72,10 +72,10 @@ class ProfileController{
     
     static async delete(req, res) {
         try {
-            const { email } = req.params;
+            const { id } = req.params;
     
             // Check if the user ID from the params is a valid number
-            if (isNaN(email)) {
+            if (isNaN(id)) {
                 return res.status(400).json({ error: "Invalid email Id" });
             }
     
