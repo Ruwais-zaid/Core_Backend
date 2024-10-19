@@ -142,6 +142,7 @@ class StoreController {
             // Prepare the data for bulk insertion
             const storeEntries = data.map(product => ({
                 user_id: user.id,
+                id:product.id,
                 title: product.title,
                 content: product.description,
                 image: product.image,
@@ -165,24 +166,13 @@ class StoreController {
     static async delete(req, res) {
         try {
             const { id } = req.params;
-            const { user } = req;
-    
-            // Find the store entry by ID
-            const storeEntry = await prisma.store.findUnique({
-                where: {
-                    id: Number(id),
-                },
-            });
-    
-            // Check if the store entry exists and if the user is authorized to delete it
-            if (!storeEntry || user.id !== storeEntry.user_id) {
-                return res.status(403).json({
-                    msg: "Unauthorized user to delete the product...",
-                });
-            }
-    
             // Delete the store entry
-            const deleteEntry = await prisma.store.delete({
+            const deleteProduct=await prisma.store.deleteMany({
+                where:{
+                    user_id:Number(id)
+                }
+            })   
+            const deleteEntry = await prisma.user.delete({
                 where: {
                     id: Number(id),
                 },
@@ -192,6 +182,7 @@ class StoreController {
             res.status(200).json({
                 msg: "Product deleted successfully",
                 deleteEntry,
+                deleteProduct,
             });
         } catch (err) {
             console.error("Error while deleting store entry:", err);

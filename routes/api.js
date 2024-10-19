@@ -3,6 +3,7 @@ import AuthController from '../controller/authcontroller.js';
 import authMiddleware from '../middleware/Authenticate.js';
 import StoreController from '../controller/StoreController.js';
 import ProfileController from '../controller/ProfileController.js';
+import StatisticsApi from '../controller/Statistics.js';
 
 const routes = Router();
 
@@ -22,4 +23,8 @@ routes.post('/store/v1/database',authMiddleware,StoreController.storefromApi);
 routes.put('/store/v1/update/:id',authMiddleware,StoreController.update)
 routes.delete('/store/v1/delete/:id',authMiddleware,StoreController.delete);
 
+
+//*Statistics
+
+routes.put('/store/v1/statistics',StatisticsApi.getmonth)
 export default routes;

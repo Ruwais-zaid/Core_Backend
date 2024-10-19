@@ -33,6 +33,8 @@ model Store{
   image String @db.VarChar(100)
   sold Boolean?
   price Int?
+  Month Int?
+  Year Int?
   dateofSale DateTime @default(now())
   created_at DateTime @default(now())
 
