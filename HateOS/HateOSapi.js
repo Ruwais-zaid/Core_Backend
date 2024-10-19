@@ -60,7 +60,7 @@ routes.get('/store/v1/actions/:id',authMiddleware ,async (req,res)=>{
     }
 
 })
-routes.delete('/store/v1/delete/:id',async(req,res)=>{
+routes.delete('/store/v1/delete/:id',authMiddleware,async(req,res)=>{
     try{
 
         const {id} = req.params;
@@ -89,7 +89,7 @@ routes.delete('/store/v1/delete/:id',async(req,res)=>{
 
 //Update a book
 
-routes.put('/store/v1/update/:id', async (req, res) => {
+routes.put('/store/v1/update/:id',authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 
