@@ -20,5 +20,7 @@ export const StoreSchema = vine.object({
   title:vine.string().minLength(3).maxLength(190),
   content:vine.string().minLength(10).maxLength(3000),
   price:vine.number(),
-  category:vine.string().minLength(10).maxLength(200)
+  category:vine.string().minLength(10).maxLength(200),
+  sold:vine.boolean()
+  
 })
