@@ -281,6 +281,35 @@ payload.category = body.category || store.category;
             res.status(500).json({ msg: "An error occurred while updating the store entry." });
         }
     }
+    static async indexatApi(req,res){
+        try {
+            const { id } = req.params;
+        
+            // Ensure the ID is treated as a number if your database uses numeric IDs
+            const storeEntryById = await prisma.store.findUnique({
+                where: { id: Number(id) } // Wrap id in an object
+            });
+        
+            // Check if the store entry exists
+            if (!storeEntryById) {
+                return res.status(404).json({
+                    status: 404,
+                    msg: "Store entry not found"
+                });
+            }
+        
+            res.status(200).json({
+                status: 200, // Fixed typo
+                storeEntryById,
+                msg: "Product fetched successfully" // Fixed typo
+            });
+        
+        } catch (error) {
+            console.log("Error:", error);
+            res.status(500).json({ message: "An error occurred while fetching the unique record" }); // Changed to JSON object
+        }
+        
+    }
     
 }
 

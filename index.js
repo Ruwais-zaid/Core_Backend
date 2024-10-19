@@ -5,6 +5,7 @@ import fileUpload from 'express-fileupload';
 
 dotenv.config();
 import Apiroutes from './routes/api.js'
+import ApiHateOs from './HateOS/HateOSapi.js'
 const app = express();
 const PORT = process.env.PORT || 8001;
 
@@ -20,6 +21,7 @@ app.get('/', (req, res) => {
 
 
 app.use('/api',Apiroutes);
+app.use('/api',ApiHateOs);
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
