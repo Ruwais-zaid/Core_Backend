@@ -27,4 +27,9 @@ routes.delete('/store/v1/delete/:id',authMiddleware,StoreController.delete);
 //*Statistics
 
 routes.put('/store/v1/statistics',StatisticsApi.getmonth)
+routes.get('/store/v1/search/statistics/',StatisticsApi.search);
+routes.get('/store/v1/range/statistics',StatisticsApi.getPriceRange);
+routes.get('/store/v1/unique/category/statistics',StatisticsApi.getUniqueCategory)
+routes.get('/store/v1/total/sale/statistics',StatisticsApi.totalStatistics)
+routes.get('/store/v1/all/statistics',StatisticsApi.allStats)
 export default routes;
