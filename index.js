@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-
+import cors from 'cors'
+import helmet from 'helmet'
 import fileUpload from 'express-fileupload';
 
 dotenv.config();
@@ -14,6 +15,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(fileUpload())
 app.use(express.static('public/images'))
+
+//* Use Cors so that my server is host any other origin (Cross Origin Resourse Sharing)
+app.use(cors({}))
+
+//* Using helmet for security headers that help to protect helps from Cross-Site-Scripting(XSS) and other vulnerablities
+
+app.use(helmet({}))
 // Root route
 app.get('/', (req, res) => {
     res.json({ message: 'Hello, Server is Running' });
