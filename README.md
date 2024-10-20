@@ -1,4 +1,4 @@
-# Core Backend Project
+# Core Backend 
 
 This project is a core backend system that manages user profiles, statistical data analysis, and product information using a robust technology stack including Prisma, PostgreSQL, Redis cache, and rate-limiting middleware.
 
